@@ -61,7 +61,6 @@
 	import Sidebar from '../icons/Sidebar.svelte';
 	import PinnedModelList from './Sidebar/PinnedModelList.svelte';
 	import Note from '../icons/Note.svelte';
-	import { slide } from 'svelte/transition';
 
 	const BREAKPOINT = 768;
 
@@ -202,7 +201,7 @@
 		chatListLoading = false;
 	};
 
-	const importChatHandler = async (items, pinned = false, folderId = null) => {
+	const importChatHandler = async (items: any[], pinned = false, folderId: string | null = null) => {
 		console.log('importChatHandler', items, pinned, folderId);
 		for (const item of items) {
 			console.log(item);
@@ -222,13 +221,17 @@
 		initChatList();
 	};
 
-	const inputFilesHandler = async (files) => {
+	const inputFilesHandler = async (files: FileList | File[]) => {
 		console.log(files);
 
 		for (const file of files) {
 			const reader = new FileReader();
-			reader.onload = async (e) => {
-				const content = e.target.result;
+			reader.onload = async (e: ProgressEvent<FileReader>) => {
+				const content = e.target?.result as string;
+
+				if (!content) {
+					return;
+				}
 
 				try {
 					const chatItems = JSON.parse(content);
@@ -242,7 +245,7 @@
 		}
 	};
 
-	const tagEventHandler = async (type, tagName, chatId) => {
+	const tagEventHandler = async (type: string, tagName: string, chatId: string) => {
 		console.log(type, tagName, chatId);
 		if (type === 'delete') {
 			initChatList();
@@ -253,7 +256,7 @@
 
 	let draggedOver = false;
 
-	const onDragOver = (e) => {
+	const onDragOver = (e: DragEvent) => {
 		e.preventDefault();
 
 		// Check if a file is being draggedOver.
@@ -268,7 +271,7 @@
 		draggedOver = false;
 	};
 
-	const onDrop = async (e) => {
+	const onDrop = async (e: DragEvent) => {
 		e.preventDefault();
 		console.log(e); // Log the drop event
 
@@ -285,10 +288,12 @@
 		draggedOver = false; // Reset draggedOver status after drop
 	};
 
-	let touchstart;
-	let touchend;
+	let touchstart: Touch | null = null;
+	let touchend: Touch | null = null;
 
 	function checkDirection() {
+		if (!touchstart || !touchend) return;
+		
 		const screenWidth = window.innerWidth;
 		const swipeDistance = Math.abs(touchend.screenX - touchstart.screenX);
 		if (touchstart.clientX < 40 && swipeDistance >= screenWidth / 8) {
@@ -301,23 +306,23 @@
 		}
 	}
 
-	const onTouchStart = (e) => {
+	const onTouchStart = (e: TouchEvent) => {
 		touchstart = e.changedTouches[0];
 		console.log(touchstart.clientX);
 	};
 
-	const onTouchEnd = (e) => {
+	const onTouchEnd = (e: TouchEvent) => {
 		touchend = e.changedTouches[0];
 		checkDirection();
 	};
 
-	const onKeyDown = (e) => {
+	const onKeyDown = (e: KeyboardEvent) => {
 		if (e.key === 'Shift') {
 			shiftKey = true;
 		}
 	};
 
-	const onKeyUp = (e) => {
+	const onKeyUp = (e: KeyboardEvent) => {
 		if (e.key === 'Shift') {
 			shiftKey = false;
 		}
@@ -482,13 +487,14 @@
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 
-{#if $showSidebar}
+{#if $showSidebar && $mobile}
 	<div
-		class=" {$isApp
-			? ' ml-[4.5rem] md:ml-0'
-			: ''} fixed md:hidden z-40 top-0 right-0 left-0 bottom-0 bg-black/60 w-full min-h-screen h-screen flex justify-center overflow-hidden overscroll-contain"
+		class="fixed md:hidden z-40 top-0 right-0 left-0 bottom-0 bg-black/60 w-full min-h-screen h-screen flex justify-center overflow-hidden overscroll-contain"
 		on:mousedown={() => {
-			showSidebar.set(!$showSidebar);
+			showSidebar.set(false);
+		}}
+		on:touchstart={() => {
+			showSidebar.set(false);
 		}}
 	/>
 {/if}
@@ -713,19 +719,13 @@
 	<div
 		bind:this={navElement}
 		id="sidebar"
-		class="h-screen max-h-[100dvh] min-h-screen select-none {$showSidebar
-			? 'bg-gray-50 dark:bg-gray-950 z-50'
-			: ' bg-transparent z-0 '} {$isApp
+		class="h-screen max-h-[100dvh] min-h-screen select-none bg-gray-50 dark:bg-gray-950 z-50 {$isApp
 			? `ml-[4.5rem] md:ml-0 `
-			: ' transition-all duration-300 '} shrink-0 text-gray-900 dark:text-gray-200 text-sm fixed top-0 left-0 overflow-x-hidden
-        "
-		transition:slide={{ duration: 200, axis: 'x' }}
+			: ' transition-transform duration-300 ease-in-out '} shrink-0 text-gray-900 dark:text-gray-200 text-sm fixed top-0 left-0 overflow-x-hidden {$showSidebar ? 'translate-x-0' : '-translate-x-full'}"
 		data-state={$showSidebar}
 	>
 		<div
-			class=" my-auto flex flex-col justify-between h-screen max-h-[100dvh] w-[260px] overflow-x-hidden scrollbar-hidden z-50 {$showSidebar
-				? ''
-				: 'invisible'}"
+			class=" my-auto flex flex-col justify-between h-screen max-h-[100dvh] w-[260px] overflow-x-hidden scrollbar-hidden z-50"
 		>
 			<div
 				class="sidebar px-1.5 pt-2 pb-1.5 flex justify-between space-x-1 text-gray-600 dark:text-gray-400 sticky top-0 z-10 bg-gray-50 dark:bg-gray-950"

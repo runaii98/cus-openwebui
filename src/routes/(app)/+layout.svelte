@@ -289,7 +289,7 @@
 {#if $user}
 	<div class="app relative">
 		<div
-			class=" text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-900 h-screen max-h-[100dvh] overflow-auto flex flex-row justify-end"
+			class=" text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-900 h-screen max-h-[100dvh] overflow-auto flex flex-row {$showSidebar && !$mobile ? 'md:ml-[260px]' : ''}"
 		>
 			{#if !['user', 'admin'].includes($user?.role)}
 				<AccountPending />
@@ -352,12 +352,14 @@
 				<Sidebar />
 
 				{#if loaded}
-					<slot />
+					<div class="flex-1 overflow-auto">
+						<slot />
+					</div>
 				{:else}
 					<div
-						class="w-full flex-1 h-full flex items-center justify-center {$showSidebar
-							? '  md:max-w-[calc(100%-260px)]'
-							: ' '}"
+						class="w-full flex-1 h-full flex items-center justify-center {$showSidebar && !$mobile
+							? 'md:ml-[260px]'
+							: ''}"
 					>
 						<Spinner className="size-5" />
 					</div>
