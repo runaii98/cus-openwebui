@@ -68,7 +68,7 @@
 	let navElement;
 	let shiftKey = false;
 
-	let selectedChatId = null;
+	let selectedChatId: string | null = null;
 	let showPinnedChat = true;
 
 	let showCreateChannel = false;
@@ -78,8 +78,8 @@
 	let allChatsLoaded = false;
 
 	let showCreateFolderModal = false;
-	let folders = {};
-	let newFolderId = null;
+	let folders: Record<string, any> = {};
+	let newFolderId: string | null = null;
 
 	const initFolders = async () => {
 		const folderList = await getFolders(localStorage.token).catch((error) => {
@@ -115,25 +115,25 @@
 					: [folder.id];
 
 				// Sort the children by updated_at field
-				folders[folder.parent_id].childrenIds.sort((a, b) => {
+				folders[folder.parent_id].childrenIds.sort((a: string, b: string) => {
 					return folders[b].updated_at - folders[a].updated_at;
 				});
 			}
 		}
 	};
 
-	const createFolder = async ({ name, data }) => {
+	const createFolder = async ({ name, data }: { name: string; data: any }) => {
 		if (name === '') {
 			toast.error($i18n.t('Folder name cannot be empty.'));
 			return;
 		}
 
-		const rootFolders = Object.values(folders).filter((folder) => folder.parent_id === null);
-		if (rootFolders.find((folder) => folder.name.toLowerCase() === name.toLowerCase())) {
+		const rootFolders = Object.values(folders).filter((folder: any) => folder.parent_id === null);
+		if (rootFolders.find((folder: any) => folder.name.toLowerCase() === name.toLowerCase())) {
 			// If a folder with the same name already exists, append a number to the name
 			let i = 1;
 			while (
-				rootFolders.find((folder) => folder.name.toLowerCase() === `${name} ${i}`.toLowerCase())
+				rootFolders.find((folder: any) => folder.name.toLowerCase() === `${name} ${i}`.toLowerCase())
 			) {
 				i++;
 			}
